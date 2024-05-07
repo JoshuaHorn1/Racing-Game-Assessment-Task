@@ -1,7 +1,6 @@
 """Instructions Component - Version 1
 A component to display the game instructions. Accessed through the
 welcome_screen() function.
--
 """
 
 # IMPORTS...

@@ -115,7 +115,6 @@ def welcome_screen():
                     pygame.quit()
                     quit()
 
-
         pygame.display.flip()
 
     return
