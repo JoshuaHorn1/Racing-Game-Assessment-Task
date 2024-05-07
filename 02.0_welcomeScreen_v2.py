@@ -1,8 +1,9 @@
-"""Welcome Screen Component - Version 1
+"""Welcome Screen Component - Version 2
 A component to welcome the user to the program, and give them options, such as
 to display instructions, to customise their car, to start the game, or to quit
 the program.
 - Renamed the game window to match the title: "Highway Haulers"
+- Created a class to create buttons to detect user inputs
 """
 
 # IMPORTS...
@@ -10,6 +11,27 @@ import pygame
 
 # INITIALISATIONS...
 pygame.init()
+
+
+# CLASSES...
+class Button:
+    def __init__(self, x, y, width, height, color, text):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.color = color
+        self.text = text
+        self.text_surface = (pygame.font.Font(None, 32).render
+                             (text, True, (0, 0, 0)))
+
+    def draw_button(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)
+        screen.blit(self.text_surface,
+                    (self.rect.x + (self.rect.width // 2 -
+                                    self.text_surface.get_width() // 2),
+                     self.rect.y + (self.rect.height // 2 -
+                                    self.text_surface.get_height() // 2)))
+
+    def is_clicked(self, pos):
+        return self.rect.collidepoint(pos)
 
 
 # FUNCTIONS...
@@ -40,6 +62,7 @@ def welcome_screen():
         SCREEN.blit(TITLE_TEXT1, TITLE_RECT1)
         SCREEN.blit(TITLE_TEXT2, TITLE_RECT2)
         pygame.display.flip()
+
     return
 
 
