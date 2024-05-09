@@ -50,9 +50,9 @@ def center_x(button_width, screen_width):
 
 
 # A function to draw all game assets
-def draw_assets():
-    # Display the track and grassy background
-    SCREEN.blit(HIGHWAY, (0, 0))
+def draw_assets(draw_list):
+    for asset, pos in draw_list:
+        SCREEN.blit(asset, pos)
 
 
 # A function to display the welcome screen
@@ -152,6 +152,11 @@ clock = pygame.time.Clock()
 # Displays welcome screen
 welcome_screen()
 
+# List containing all assets to draw and their positions
+assets = [
+    (HIGHWAY, (0, 0)),
+]
+
 # Game Loop:
 running = True
 while running:
@@ -163,7 +168,7 @@ while running:
             break
 
     # Calls the draw_assets() function to draw all assets on the screen
-    draw_assets()
+    draw_assets(assets)
 
     # Updates the screen
     pygame.display.flip()
