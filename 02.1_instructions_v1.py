@@ -84,6 +84,7 @@ def welcome_screen():
 
         # Fill the screen with grey
         SCREEN.fill(DARK_GREY)
+
         # Display a title
         TITLE_TEXT1 = TITLE_FONT.render("Highway", True,
                                         VIBRANT_PURPLE)
@@ -102,19 +103,34 @@ def welcome_screen():
                     pygame.mouse.get_pos()):
                 button_clicked = button.text
 
+                # Checks which button the user clicked
                 if button_clicked == "Start Game":
                     return
                 elif button_clicked == "Instructions":
-                    pass
+                    instructions()
                 elif button_clicked == "Customise":
                     pass
                 elif button_clicked == "Quit":
                     pygame.quit()
                     quit()
 
+        # Updates the display
         pygame.display.flip()
 
     return
+
+
+def instructions():
+    back = False
+    while not back:  # returns once user has pressed the back button
+        # Fills the screen with a dark grey
+        SCREEN.fill(DARK_GREY)
+
+        # Displays the instructions text on the screen
+        CONTROLS_TEXT = DEFAULT_FONT.render("Press 'A' or >LEFT ARROW< to"
+                                            "change lanes to the left.",
+                                            True, (0, 0, 0))
+        CONTROLS_RECT = CONTROLS_TEXT.get_rect()
 
 
 # MAIN PROGRAM...
@@ -134,6 +150,7 @@ LIGHT_GREY = (150, 150, 150)
 VIBRANT_PURPLE = (188, 0, 255)
 
 # Set Fonts:
+DEFAULT_FONT = pygame.font.SysFont("couriernew", 20)
 TITLE_FONT = pygame.font.SysFont("goudystout", 40)
 
 # Calculate and store the height and width needed for the screen
