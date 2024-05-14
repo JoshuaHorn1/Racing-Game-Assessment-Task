@@ -1,8 +1,8 @@
-"""Instructions Component - Version 1
-A component to display the game instructions. Accessed through the
-welcome_screen() function.
-- Started adding some of the instructions text
-- Added a universal back button which can be used in other components
+"""Generate Track Component - Version 2
+A component to scroll through multiple backgrounds, giving the illusion of
+car movement.
+- Stacked multiple highway images ontop of each other so that when one is
+scrolled down, it is replaced by another
 """
 
 # IMPORTS...
@@ -107,11 +107,12 @@ def welcome_screen():
                 # Checks which button the user clicked
                 if button_clicked == "Start Game":
                     return
-                elif button_clicked == "Instructions":
+                if button_clicked == "Instructions":
                     instructions()
-                elif button_clicked == "Customise":
+                if button_clicked == "Customise":
                     pass
-                elif button_clicked == "Quit":
+                if button_clicked == "Quit":
+                    print("test")
                     pygame.quit()
                     quit()
 
@@ -146,18 +147,36 @@ def instructions():
         CONTROLS_RECT4 = CONTROLS_TEXT4.get_rect(center=(WIDTH // 2, 100))
         SCREEN.blit(CONTROLS_TEXT3, CONTROLS_RECT3)
         SCREEN.blit(CONTROLS_TEXT4, CONTROLS_RECT4)
-        # SCORE_TEXT1 = DEFAULT_FONT.render("Points are based off of how many", True, WHITE)
-        # SCORE_TEXT2 = DEFAULT_FONT.render("cars you pass before you crash.", True, WHITE)
-        # SCORE_RECT1 = CONTROLS_TEXT1.get_rect(center=(WIDTH // 2 - 40, 140))
-        # SCORE_RECT2 = CONTROLS_TEXT2.get_rect(center=(WIDTH // 2 - 30, 160))
-        # SCREEN.blit(SCORE_TEXT1, SCORE_RECT1)
-        # SCREEN.blit(SCORE_TEXT2, SCORE_RECT2)
+        SCORE_TEXT1 = DEFAULT_FONT.render("Points are based off of how many", True, WHITE)
+        SCORE_TEXT2 = DEFAULT_FONT.render("cars you pass before you crash.", True, WHITE)
+        SCORE_RECT1 = SCORE_TEXT1.get_rect(center=(WIDTH // 2, 140))
+        SCORE_RECT2 = SCORE_TEXT2.get_rect(center=(WIDTH // 2, 160))
+        SCREEN.blit(SCORE_TEXT1, SCORE_RECT1)
+        SCREEN.blit(SCORE_TEXT2, SCORE_RECT2)
+        SCORE_TEXT3 = DEFAULT_FONT.render("The game ends when you crash into", True, WHITE)
+        SCORE_TEXT4 = DEFAULT_FONT.render("another vehicle on the highway.", True, WHITE)
+        SCORE_RECT3 = SCORE_TEXT3.get_rect(center=(WIDTH // 2, 200))
+        SCORE_RECT4 = SCORE_TEXT4.get_rect(center=(WIDTH // 2, 220))
+        SCREEN.blit(SCORE_TEXT3, SCORE_RECT3)
+        SCREEN.blit(SCORE_TEXT4, SCORE_RECT4)
+        SCORE_TEXT5 = DEFAULT_FONT.render("Other vehicles will travel towards", True, WHITE)
+        SCORE_TEXT6 = DEFAULT_FONT.render("you and away from you.", True, WHITE)
+        SCORE_RECT5 = SCORE_TEXT5.get_rect(center=(WIDTH // 2, 260))
+        SCORE_RECT6 = SCORE_TEXT6.get_rect(center=(WIDTH // 2, 280))
+        SCREEN.blit(SCORE_TEXT5, SCORE_RECT5)
+        SCREEN.blit(SCORE_TEXT6, SCORE_RECT6)
+        SCORE_TEXT7 = DEFAULT_FONT.render("The game will slowly speed up", True, WHITE)
+        SCORE_TEXT8 = DEFAULT_FONT.render("as you gain a higher score.", True, WHITE)
+        SCORE_RECT7 = SCORE_TEXT7.get_rect(center=(WIDTH // 2, 320))
+        SCORE_RECT8 = SCORE_TEXT8.get_rect(center=(WIDTH // 2, 340))
+        SCREEN.blit(SCORE_TEXT7, SCORE_RECT7)
+        SCREEN.blit(SCORE_TEXT8, SCORE_RECT8)
 
         BACK_BUTTON = Button(*BACK_BUTTON_INFO)
         BACK_BUTTON.draw_button(SCREEN)
         if pygame.mouse.get_pressed()[0] and BACK_BUTTON.is_clicked(
                 pygame.mouse.get_pos()):
-            welcome_screen()
+            return
 
         pygame.display.flip()
 
@@ -193,7 +212,7 @@ pygame.display.set_caption("Highway Haulers")
 pygame.display.set_icon(ICON)
 
 # Universal back button information
-BACK_BUTTON_INFO = [center_x(250, WIDTH), 525, 250, 65,
+BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
                     (150, 150, 150), "Back"]
 
 # Game frame-rate via pygame clock
@@ -203,9 +222,13 @@ clock = pygame.time.Clock()
 # Displays welcome screen
 welcome_screen()
 
-# List containing all assets to draw and their positions
+# Create a copy of the background image
+HIGHWAY_COPY = HIGHWAY.copy()
+
+# Assets list with background images positioned one below the other
 assets = [
     (HIGHWAY, (0, 0)),
+    (HIGHWAY_COPY, (0, HIGHWAY.get_height())),  # Second image starts below first
 ]
 
 # Game Loop:
@@ -218,6 +241,13 @@ while running:
             running = False
             break
 
+    # Move the background image
+    scroll_position += 1  # Adjust this value to change the scrolling speed
+
+    # Update the background position in the assets list
+    assets[0] = (HIGHWAY, (0, -scroll_position))  # Notice the negative value
+    assets[1] = (HIGHWAY_COPY, (0, -scroll_position - HIGHWAY.get_height()))
+
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)
 
@@ -226,6 +256,9 @@ while running:
 
     # Ticks the clock at the value of the FPS
     clock.tick(FPS)
+
+pygame.quit()
+quit()
 
 pygame.quit()
 quit()

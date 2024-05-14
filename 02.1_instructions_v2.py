@@ -1,8 +1,8 @@
-"""Instructions Component - Version 1
+"""Instructions Component - Version 2
 A component to display the game instructions. Accessed through the
 welcome_screen() function.
-- Started adding some of the instructions text
-- Added a universal back button which can be used in other components
+- Returns to the welcome screen after pressing back in the instructions. This
+was done by moving the back button down.
 """
 
 # IMPORTS...
@@ -107,11 +107,12 @@ def welcome_screen():
                 # Checks which button the user clicked
                 if button_clicked == "Start Game":
                     return
-                elif button_clicked == "Instructions":
+                if button_clicked == "Instructions":
                     instructions()
-                elif button_clicked == "Customise":
+                if button_clicked == "Customise":
                     pass
-                elif button_clicked == "Quit":
+                if button_clicked == "Quit":
+                    print("test")
                     pygame.quit()
                     quit()
 
@@ -157,7 +158,7 @@ def instructions():
         BACK_BUTTON.draw_button(SCREEN)
         if pygame.mouse.get_pressed()[0] and BACK_BUTTON.is_clicked(
                 pygame.mouse.get_pos()):
-            welcome_screen()
+            return
 
         pygame.display.flip()
 
@@ -193,7 +194,7 @@ pygame.display.set_caption("Highway Haulers")
 pygame.display.set_icon(ICON)
 
 # Universal back button information
-BACK_BUTTON_INFO = [center_x(250, WIDTH), 525, 250, 65,
+BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
                     (150, 150, 150), "Back"]
 
 # Game frame-rate via pygame clock
