@@ -1,8 +1,11 @@
-"""User Car Component - Version 4
-A component to scroll through multiple backgrounds, giving the illusion of
-car movement.
+"""User Car Component - Version 5
+A component to create, display, and control the user's car sprite on the game
+screen, allowing it to move between the four lanes.
 - Trialled pygame event.KEYDOWN vs keys list (in 04_userCar_v5) and decided to
-continue to developing the event.KEYDOWN because it is more responsive
+continue to developing the event.KEYDOWN because it is more responsive.
+- Added the ability to use 'a' and 'd' to change lanes.
+- Trialled created a function to check if the user quits pygame and went ahead
+with doing so.
 """
 
 # IMPORTS...
@@ -39,6 +42,17 @@ class Button:
 
 
 # FUNCTIONS...
+
+
+# A function to check if the window is ever closed
+def quit_check():
+    for event in pygame.event.get():
+        # Exit PyGame if the user closes the window
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
+
 # A function to scale assets to the correct size
 def scale(image, factor):
     size = round(image.get_width() * factor), round(image.get_height() *
@@ -78,11 +92,7 @@ def welcome_screen():
 
     while not started:
         # Checks if the user ever closes the window
-        for event in pygame.event.get():
-            # Exit PyGame if the user closes the window
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+        quit_check()
 
         # Fill the screen with grey
         SCREEN.fill(DARK_GREY)
@@ -127,11 +137,7 @@ def welcome_screen():
 def instructions():
     back = False
     while not back:  # returns once user has pressed the back button
-        for event in pygame.event.get():
-            # Exit PyGame if the user closes the window
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+        quit_check()  # check if the user closes the window
 
         # Fills the screen with a dark grey
         SCREEN.fill(DARK_GREY)
@@ -255,32 +261,21 @@ assets = [
 running = True
 while running:
     # Handle events
+    quit_check()
     for event in pygame.event.get():
-        # Exit PyGame if the user closes the window
-        if event.type == pygame.QUIT:
-            running = False
-            break
-
-        # Trialling pygame events vs keys
+        # Checks if user changes lane
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_a :
                 if current_lane > 0:
                     current_lane -= 1
-            if event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 if current_lane < 3:
                     current_lane += 1
-
-    # if keys[pygame.K_LEFT]:
-    #     if current_lane > 0:
-    #         current_lane -= 1
-    # if keys[pygame.K_RIGHT]:
-    #     if current_lane < 3:
-    #         current_lane += 1
 
     # Slowly speed up the background's motion as time goes on
     scroll_time += 1
     if scroll_time >= 500:
-        scroll_value += 0.2
+        scroll_value += 0.25
         scroll_time = 0
     print(scroll_time)
 

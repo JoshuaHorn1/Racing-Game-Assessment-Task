@@ -1,9 +1,8 @@
-"""User Car Component - Version 4
-A component to scroll through multiple backgrounds, giving the illusion of
-car movement.
-- The game will now store the current lane which the user's car is occupying -
-I trialled this vs a function, and came up with a more code-efficient method
-without it.
+"""User Car Component - Version 3
+A component to create, display, and control the user's car sprite on the game
+screen, allowing it to move between the four lanes.
+- Changed the lane values to be held in a list
+- Allowed user input to change the lane value
 """
 
 # IMPORTS...
@@ -50,6 +49,20 @@ def scale(image, factor):
 # A function to centre buttons on the screen
 def center_x(button_width, screen_width):
     return (screen_width // 2) - (button_width // 2)
+
+
+# A function to randomise a lane to spawn the user's car on
+def random_lane():
+    value = random.randint(1, 4)
+    print(value)
+    if value == 1:
+        return LANES[0]
+    elif value == 2:
+        return LANES[1]
+    elif value == 3:
+        return LANES[2]
+    else:
+        return LANES[3]
 
 
 # A function to draw all game assets
@@ -195,7 +208,6 @@ PURPLE_CAR = scale(pygame.image.load("purple-car.png"), 0.13)
 RED_CAR = scale(pygame.image.load("red-car.png"), 0.13)
 TEAL_CAR = scale(pygame.image.load("teal-car.png"), 0.13)
 ICON = pygame.image.load("icon.png")
-keys = pygame.key.get_pressed()
 
 # Set Colour Tuples:
 DARK_GREY = (60, 60, 60)
@@ -239,18 +251,17 @@ clock = pygame.time.Clock()
 # Displays welcome screen
 welcome_screen()
 
-# Game loop variables
-current_lane = random.randint(0, 3)
-scroll_position = 0  # Keep track of the background scroll position
-scroll_time = 0
-scroll_value = 1
-
 # List containing all assets to draw and their positions
 assets = [
     (HIGHWAY, (0, 0)),
     (HIGHWAY2, (0, (-1 * HEIGHT))),
-    (USER_CAR_CHOICE, (WIDTH // 2 + LANES[current_lane], USER_Y))
+    (USER_CAR_CHOICE, (WIDTH // 2 + random_lane(), USER_Y))
 ]
+
+# Game loop variables
+scroll_position = 0  # Keep track of the background scroll position
+scroll_time = 0
+scroll_value = 1
 
 # Game Loop:
 running = True
@@ -261,22 +272,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
             break
-
-        # Trialling pygame events vs keys
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                if current_lane > 0:
-                    current_lane -= 1
-            if event.key == pygame.K_RIGHT:
-                if current_lane < 3:
-                    current_lane += 1
-
-    # if keys[pygame.K_LEFT]:
-    #     if current_lane > 0:
-    #         current_lane -= 1
-    # if keys[pygame.K_RIGHT]:
-    #     if current_lane < 3:
-    #         current_lane += 1
 
     # Slowly speed up the background's motion as time goes on
     scroll_time += 1
@@ -294,7 +289,6 @@ while running:
     # Update the background positions in the assets list
     assets[0] = (HIGHWAY, (0, -scroll_position))
     assets[1] = (HIGHWAY2, (0, -scroll_position - HIGHWAY.get_height()))
-    assets[2] = (USER_CAR_CHOICE, (WIDTH // 2 + LANES[current_lane], USER_Y))
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)

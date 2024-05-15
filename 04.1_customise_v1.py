@@ -1,12 +1,12 @@
-"""User Car Component - Version 1
-A component to scroll through multiple backgrounds, giving the illusion of
-car movement.
-- Load the x-values for the different lanes
-- Load a y-value for the user car
+"""Customise Component - Version 1
+A component that branches from the main_menu() component and allows the user to
+customise the colour/type of their car.
+- Stored all of the car assets into a list.
 """
 
 # IMPORTS...
 import pygame
+import random
 
 # INITIALISATIONS...
 pygame.init()
@@ -38,6 +38,17 @@ class Button:
 
 
 # FUNCTIONS...
+
+
+# A function to check if the window is ever closed
+def quit_check():
+    for event in pygame.event.get():
+        # Exit PyGame if the user closes the window
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
+
 # A function to scale assets to the correct size
 def scale(image, factor):
     size = round(image.get_width() * factor), round(image.get_height() *
@@ -77,11 +88,7 @@ def welcome_screen():
 
     while not started:
         # Checks if the user ever closes the window
-        for event in pygame.event.get():
-            # Exit PyGame if the user closes the window
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+        quit_check()
 
         # Fill the screen with grey
         SCREEN.fill(DARK_GREY)
@@ -122,14 +129,11 @@ def welcome_screen():
     return
 
 
+# A function to display instructions
 def instructions():
     back = False
     while not back:  # returns once user has pressed the back button
-        for event in pygame.event.get():
-            # Exit PyGame if the user closes the window
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+        quit_check()  # check if the user closes the window
 
         # Fills the screen with a dark grey
         SCREEN.fill(DARK_GREY)
@@ -185,13 +189,18 @@ def instructions():
 # Load Game Assets:
 HIGHWAY = scale(pygame.image.load("highway.jpg"), 0.9)
 HIGHWAY2 = HIGHWAY.copy()  # copies highway image for background motion
-BLUE_CAR = scale(pygame.image.load("blue-car.png"), 0.13)
-GREEN_CAR = scale(pygame.image.load("green-car.png"), 0.13)
-ORANGE_CAR = scale(pygame.image.load("orange-car.png"), 0.13)
-PURPLE_CAR = scale(pygame.image.load("purple-car.png"), 0.13)
-RED_CAR = scale(pygame.image.load("red-car.png"), 0.13)
-TEAL_CAR = scale(pygame.image.load("teal-car.png"), 0.13)
 ICON = pygame.image.load("icon.png")
+CARS = {  # a dictionary storing all the cars
+    "blue": scale(pygame.image.load("blue-car.png"), 0.13),
+    "green": scale(pygame.image.load("green-car.png"), 0.13),
+    "orange": scale(pygame.image.load("orange-car.png"), 0.13),
+    "purple": scale(pygame.image.load("purple-car.png"), 0.13),
+    "red": scale(pygame.image.load("red-car.png"), 0.13),
+    "teal": scale(pygame.image.load("teal-car.png"), 0.13),
+}
+
+# Load the keys able to be pressed
+keys = pygame.key.get_pressed()
 
 # Set Colour Tuples:
 DARK_GREY = (60, 60, 60)
@@ -212,15 +221,17 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Highway Haulers")
 pygame.display.set_icon(ICON)
 
-# X/Y Values for the lanes and user car placement
-LANE1_X = -85
-LANE2_X = -30
-LANE3_X = 30
-LANE4_X = 85
-USER_Y = (HEIGHT // 2) + 80
-
 # Set user car (will be updated in the customise component)
-USER_CAR_CHOICE = PURPLE_CAR
+USER_CAR_CHOICE = CARS["purple"]
+
+# X/Y Values for the lanes and user car placement
+LANES = [  # list containing the lane x-values
+    (-85 - (USER_CAR_CHOICE.get_width() // 2)),
+    (-30 - (USER_CAR_CHOICE.get_width() // 2)),
+    (30 - (USER_CAR_CHOICE.get_width() // 2)),
+    (85 - (USER_CAR_CHOICE.get_width() // 2))
+]
+USER_Y = (HEIGHT // 2) + 80
 
 # Universal back button information
 BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
@@ -233,29 +244,37 @@ clock = pygame.time.Clock()
 # Displays welcome screen
 welcome_screen()
 
-# List containing all assets to draw and their positions
-assets = [
-    (HIGHWAY, (0, 0)), (HIGHWAY2, (0, (-1 * HEIGHT)))
-]
-
 # Game loop variables
+current_lane = random.randint(0, 3)
 scroll_position = 0  # Keep track of the background scroll position
 scroll_time = 0
-scroll_value = 1
+scroll_value = 5
+
+# List containing all assets to draw and their positions
+assets = [
+    (HIGHWAY, (0, 0)),
+    (HIGHWAY2, (0, (-1 * HEIGHT))),
+    (USER_CAR_CHOICE, (WIDTH // 2 + LANES[current_lane], USER_Y))
+]
 
 # Game Loop:
 running = True
 while running:
     # Handle events
+    quit_check()
     for event in pygame.event.get():
-        # Exit PyGame if the user closes the window
-        if event.type == pygame.QUIT:
-            running = False
-            break
+        # Checks if user changes lane
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_a :
+                if current_lane > 0:
+                    current_lane -= 1
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                if current_lane < 3:
+                    current_lane += 1
 
     # Slowly speed up the background's motion as time goes on
     scroll_time += 1
-    if scroll_time >= 1000:
+    if scroll_time >= 500:
         scroll_value += 0.25
         scroll_time = 0
     print(scroll_time)
@@ -269,13 +288,10 @@ while running:
     # Update the background positions in the assets list
     assets[0] = (HIGHWAY, (0, -scroll_position))
     assets[1] = (HIGHWAY2, (0, -scroll_position - HIGHWAY.get_height()))
+    assets[2] = (USER_CAR_CHOICE, (WIDTH // 2 + LANES[current_lane], USER_Y))
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)
-
-    # Blit user car (FOR TESTING)
-    PURPLE_CAR_RECT = PURPLE_CAR.get_rect(center=(WIDTH//2 + LANE3_X, USER_Y))
-    SCREEN.blit(PURPLE_CAR, PURPLE_CAR_RECT)
 
     # Updates the screen
     pygame.display.flip()

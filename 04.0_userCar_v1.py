@@ -1,13 +1,12 @@
-"""User Car Component - Version 3
-A component to scroll through multiple backgrounds, giving the illusion of
-car movement.
-- Changed the lane values to be held in a list
-- Allowed user input to change the lane value
+"""User Car Component - Version 1
+A component to create, display, and control the user's car sprite on the game
+screen, allowing it to move between the four lanes.
+- Load the x-values for the different lanes
+- Load a y-value for the user car
 """
 
 # IMPORTS...
 import pygame
-import random
 
 # INITIALISATIONS...
 pygame.init()
@@ -49,20 +48,6 @@ def scale(image, factor):
 # A function to centre buttons on the screen
 def center_x(button_width, screen_width):
     return (screen_width // 2) - (button_width // 2)
-
-
-# A function to randomise a lane to spawn the user's car on
-def random_lane():
-    value = random.randint(1, 4)
-    print(value)
-    if value == 1:
-        return LANES[0]
-    elif value == 2:
-        return LANES[1]
-    elif value == 3:
-        return LANES[2]
-    else:
-        return LANES[3]
 
 
 # A function to draw all game assets
@@ -137,7 +122,6 @@ def welcome_screen():
     return
 
 
-# A function to display instructions
 def instructions():
     back = False
     while not back:  # returns once user has pressed the back button
@@ -228,17 +212,15 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Highway Haulers")
 pygame.display.set_icon(ICON)
 
+# X/Y Values for the lanes and user car placement
+LANE1_X = -85
+LANE2_X = -30
+LANE3_X = 30
+LANE4_X = 85
+USER_Y = (HEIGHT // 2) + 80
+
 # Set user car (will be updated in the customise component)
 USER_CAR_CHOICE = PURPLE_CAR
-
-# X/Y Values for the lanes and user car placement
-LANES = [  # list containing the lane x-values
-    (-85 - (USER_CAR_CHOICE.get_width() // 2)),
-    (-30 - (USER_CAR_CHOICE.get_width() // 2)),
-    (30 - (USER_CAR_CHOICE.get_width() // 2)),
-    (85 - (USER_CAR_CHOICE.get_width() // 2))
-]
-USER_Y = (HEIGHT // 2) + 80
 
 # Universal back button information
 BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
@@ -253,9 +235,7 @@ welcome_screen()
 
 # List containing all assets to draw and their positions
 assets = [
-    (HIGHWAY, (0, 0)),
-    (HIGHWAY2, (0, (-1 * HEIGHT))),
-    (USER_CAR_CHOICE, (WIDTH // 2 + random_lane(), USER_Y))
+    (HIGHWAY, (0, 0)), (HIGHWAY2, (0, (-1 * HEIGHT)))
 ]
 
 # Game loop variables
@@ -292,6 +272,10 @@ while running:
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)
+
+    # Blit user car (FOR TESTING)
+    PURPLE_CAR_RECT = PURPLE_CAR.get_rect(center=(WIDTH//2 + LANE3_X, USER_Y))
+    SCREEN.blit(PURPLE_CAR, PURPLE_CAR_RECT)
 
     # Updates the screen
     pygame.display.flip()
