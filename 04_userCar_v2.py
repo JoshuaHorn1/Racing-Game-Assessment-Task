@@ -1,11 +1,13 @@
-"""Generate Track Component - Version 2
+"""User Car Component - Version 2
 A component to scroll through multiple backgrounds, giving the illusion of
 car movement.
-- Stacked two background images on top of each other for continual scrolling
+- Create a function to randomise a lane choice
+- Fixed misalignment with lanes via a car offset
 """
 
 # IMPORTS...
 import pygame
+import random
 
 # INITIALISATIONS...
 pygame.init()
@@ -47,6 +49,19 @@ def scale(image, factor):
 # A function to centre buttons on the screen
 def center_x(button_width, screen_width):
     return (screen_width // 2) - (button_width // 2)
+
+
+# A function to randomise a lane to spawn the user's car on
+def random_lane():
+    value = random.randint(1, 4)
+    if value == 1:
+        return LANE1_X
+    elif value == 2:
+        return LANE2_X
+    elif value == 3:
+        return LANE3_X
+    else:
+        return LANE4_X
 
 
 # A function to draw all game assets
@@ -121,6 +136,7 @@ def welcome_screen():
     return
 
 
+# A function to display instructions
 def instructions():
     back = False
     while not back:  # returns once user has pressed the back button
@@ -183,12 +199,13 @@ def instructions():
 # MAIN PROGRAM...
 # Load Game Assets:
 HIGHWAY = scale(pygame.image.load("highway.jpg"), 0.9)
-BLUE_CAR = scale(pygame.image.load("blue-car.png"), 0.1)
-GREEN_CAR = scale(pygame.image.load("green-car.png"), 0.1)
-ORANGE_CAR = scale(pygame.image.load("orange-car.png"), 0.1)
-PURPLE_CAR = scale(pygame.image.load("purple-car.png"), 0.1)
-RED_CAR = scale(pygame.image.load("red-car.png"), 0.1)
-TEAL_CAR = scale(pygame.image.load("teal-car.png"), 0.1)
+HIGHWAY2 = HIGHWAY.copy()  # copies highway image for background motion
+BLUE_CAR = scale(pygame.image.load("blue-car.png"), 0.13)
+GREEN_CAR = scale(pygame.image.load("green-car.png"), 0.13)
+ORANGE_CAR = scale(pygame.image.load("orange-car.png"), 0.13)
+PURPLE_CAR = scale(pygame.image.load("purple-car.png"), 0.13)
+RED_CAR = scale(pygame.image.load("red-car.png"), 0.13)
+TEAL_CAR = scale(pygame.image.load("teal-car.png"), 0.13)
 ICON = pygame.image.load("icon.png")
 
 # Set Colour Tuples:
@@ -210,6 +227,16 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Highway Haulers")
 pygame.display.set_icon(ICON)
 
+# Set user car (will be updated in the customise component)
+USER_CAR_CHOICE = PURPLE_CAR
+
+# X/Y Values for the lanes and user car placement
+LANE1_X = -85 - (USER_CAR_CHOICE.get_width() // 2)
+LANE2_X = -30 - (USER_CAR_CHOICE.get_width() // 2)
+LANE3_X = 30 - (USER_CAR_CHOICE.get_width() // 2)
+LANE4_X = 85 - (USER_CAR_CHOICE.get_width() // 2)
+USER_Y = (HEIGHT // 2) + 80
+
 # Universal back button information
 BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
                     (150, 150, 150), "Back"]
@@ -221,17 +248,20 @@ clock = pygame.time.Clock()
 # Displays welcome screen
 welcome_screen()
 
-# Create a second highway background
-HIGHWAY2 = HIGHWAY.copy()
-
 # List containing all assets to draw and their positions
 assets = [
-    (HIGHWAY, (0, 0)), (HIGHWAY2, (0, HEIGHT * -1))
+    (HIGHWAY, (0, 0)),
+    (HIGHWAY2, (0, (-1 * HEIGHT))),
+    (USER_CAR_CHOICE, (WIDTH // 2 + random_lane(), USER_Y))
 ]
+
+# Game loop variables
+scroll_position = 0  # Keep track of the background scroll position
+scroll_time = 0
+scroll_value = 1
 
 # Game Loop:
 running = True
-scroll_position = 0  # Keep track of the background scroll position
 while running:
     # Handle events
     for event in pygame.event.get():
@@ -240,13 +270,22 @@ while running:
             running = False
             break
 
-    # Move the background image
-    scroll_position -= 1
+    # Slowly speed up the background's motion as time goes on
+    scroll_time += 1
+    if scroll_time >= 1000:
+        scroll_value += 0.25
+        scroll_time = 0
+    print(scroll_time)
+
+    # Move the background images
+    scroll_position -= scroll_value
     # Check if the background needs to reset with negative scroll position
     if scroll_position < -HIGHWAY.get_height():
         scroll_position = 0
+
+    # Update the background positions in the assets list
     assets[0] = (HIGHWAY, (0, -scroll_position))
-    assets[1] = (HIGHWAY2, (0, -scroll_position))
+    assets[1] = (HIGHWAY2, (0, -scroll_position - HIGHWAY.get_height()))
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)

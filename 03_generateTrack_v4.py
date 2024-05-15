@@ -1,7 +1,7 @@
-"""Generate Track Component - Version 2
+"""Generate Track Component - Version 3
 A component to scroll through multiple backgrounds, giving the illusion of
 car movement.
-- Stacked two background images on top of each other for continual scrolling
+- Progressively speeds up the background as time goes on
 """
 
 # IMPORTS...
@@ -183,6 +183,7 @@ def instructions():
 # MAIN PROGRAM...
 # Load Game Assets:
 HIGHWAY = scale(pygame.image.load("highway.jpg"), 0.9)
+HIGHWAY2 = HIGHWAY.copy()  # copies highway image for background motion
 BLUE_CAR = scale(pygame.image.load("blue-car.png"), 0.1)
 GREEN_CAR = scale(pygame.image.load("green-car.png"), 0.1)
 ORANGE_CAR = scale(pygame.image.load("orange-car.png"), 0.1)
@@ -221,17 +222,16 @@ clock = pygame.time.Clock()
 # Displays welcome screen
 welcome_screen()
 
-# Create a second highway background
-HIGHWAY2 = HIGHWAY.copy()
-
 # List containing all assets to draw and their positions
 assets = [
-    (HIGHWAY, (0, 0)), (HIGHWAY2, (0, HEIGHT * -1))
+    (HIGHWAY, (0, 0)), (HIGHWAY2, (0, (-1 * HEIGHT)))
 ]
 
 # Game Loop:
 running = True
 scroll_position = 0  # Keep track of the background scroll position
+scroll_time = 0
+scroll_value = 1
 while running:
     # Handle events
     for event in pygame.event.get():
@@ -240,13 +240,21 @@ while running:
             running = False
             break
 
-    # Move the background image
-    scroll_position -= 1
+    # Slowly speed up the background's motion
+    scroll_time += 1
+    if scroll_time >= 1000:
+        scroll_value += 0.25
+        scroll_time = 0
+    print(scroll_time)
+    # Move the background images
+    scroll_position -= scroll_value
     # Check if the background needs to reset with negative scroll position
     if scroll_position < -HIGHWAY.get_height():
         scroll_position = 0
+
+    # Update the background positions in the assets list
     assets[0] = (HIGHWAY, (0, -scroll_position))
-    assets[1] = (HIGHWAY2, (0, -scroll_position))
+    assets[1] = (HIGHWAY2, (0, -scroll_position - HIGHWAY.get_height()))
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)
