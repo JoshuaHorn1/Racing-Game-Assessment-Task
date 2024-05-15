@@ -1,8 +1,7 @@
-"""Customise Component - Version 2
+"""Customise Component - Version 4
 A component that branches from the main_menu() component and allows the user to
 customise the colour/type of their car.
-- Linked customise() function to the main menu.
-- Defined and displayed buttons to allow the user to switch the selected car.
+-
 """
 
 # IMPORTS...
@@ -118,11 +117,9 @@ def welcome_screen():
                 if button_clicked == "Instructions":
                     instructions()
                 if button_clicked == "Customise":
-                    customise()
+                    customise(car_selection)
                 if button_clicked == "Quit":
-                    print("test")
                     pygame.quit()
-                    quit()
 
         # Updates the display
         pygame.display.flip()
@@ -133,6 +130,12 @@ def welcome_screen():
 # A function to display instructions
 def instructions():
     back = False
+
+    # Defines and loads the back button
+    BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75,
+                        250, 65, (150, 150, 150), "Back"]
+    BACK_BUTTON = Button(*BACK_BUTTON_INFO)
+
     while not back:  # returns once user has pressed the back button
         quit_check()  # check if the user closes the window
 
@@ -178,7 +181,6 @@ def instructions():
         SCREEN.blit(SCORE_TEXT8, SCORE_RECT8)
 
         # Returns to the main menu if the back button is pressed
-        BACK_BUTTON = Button(*BACK_BUTTON_INFO)
         BACK_BUTTON.draw_button(SCREEN)
         if pygame.mouse.get_pressed()[0] and BACK_BUTTON.is_clicked(
                 pygame.mouse.get_pos()):
@@ -188,28 +190,48 @@ def instructions():
         pygame.display.flip()
 
 
-def customise():
+def customise(car_num):
+    global user_car
     back = False
+
+    # A list containing all the buttons needed for this function
+    buttons = [
+        Button(center_x(250, WIDTH), HEIGHT - 75, 250,
+               65, (150, 150, 150), "Select"),
+        Button(center_x(100, WIDTH + 150), 500, 100,
+               65, (67, 190, 67), "--->"),
+        Button(center_x(100, WIDTH - 150), 500, 100,
+               65, (190, 67, 67), "<---")
+    ]
+
     while not back:  # returns once user has pressed the back button
         quit_check()
 
         # Fills the screen with a dark grey
         SCREEN.fill(DARK_GREY)
+        SCREEN.blit(user_car, (0, 0))
 
-        # Draw next and previous buttons
-        NEXT_BUTTON = Button(*NEXT_BUTTON_INFO)
-        PREVIOUS_BUTTON = Button(*PREVIOUS_BUTTON_INFO)
-        NEXT_BUTTON.draw_button(SCREEN)
-        PREVIOUS_BUTTON.draw_button(SCREEN)
+        # Draw the buttons and check for user interaction
+        for button in buttons:
+            button.draw_button(SCREEN)
+            if pygame.mouse.get_pressed()[0] and button.is_clicked(
+                    pygame.mouse.get_pos()):
+                button_clicked = button.text
 
+                # Checks which button the user clicked
+                if button_clicked == "Select":
+                    return
+                if button_clicked == "--->":
+                    if car_num < 5:
+                        car_num += 1
+                if button_clicked == "<---":
+                    if car_num > 0:
+                        car_num -= 1
 
-
-        # Returns to the main menu if the back button is pressed
-        SELECT_BUTTON = Button(*SELECT_BUTTON_INFO)
-        SELECT_BUTTON.draw_button(SCREEN)
-        if pygame.mouse.get_pressed()[0] and SELECT_BUTTON.is_clicked(
-                pygame.mouse.get_pos()):
-            return
+        # Assign the user car
+        user_car = CARS[car_list[car_num]]
+        print(user_car)
+        print(car_num)
 
         # Update display
         pygame.display.flip()
@@ -251,27 +273,19 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Highway Haulers")
 pygame.display.set_icon(ICON)
 
-# Set user car (will be updated in the customise component)
-USER_CAR_CHOICE = CARS["purple"]
+# Randomly set user car colour
+car_list = list(CARS.keys())  # Get a list of all car colours
+car_selection = random.randint(0, 5)  # Pick a random car
+user_car = CARS[car_list[car_selection]]
 
 # X/Y Values for the lanes and user car placement
 LANES = [  # list containing the lane x-values
-    (-85 - (USER_CAR_CHOICE.get_width() // 2)),
-    (-30 - (USER_CAR_CHOICE.get_width() // 2)),
-    (30 - (USER_CAR_CHOICE.get_width() // 2)),
-    (85 - (USER_CAR_CHOICE.get_width() // 2))
+    (-85 - (user_car.get_width() // 2)),
+    (-30 - (user_car.get_width() // 2)),
+    (30 - (user_car.get_width() // 2)),
+    (85 - (user_car.get_width() // 2))
 ]
 USER_Y = (HEIGHT // 2) + 80
-
-# Universal button information
-BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
-                    (150, 150, 150), "Back"]
-SELECT_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
-                      (150, 150, 150), "Select"]
-NEXT_BUTTON_INFO = [center_x(100, WIDTH + 150), 500, 100, 65,
-                    (67, 190, 67), "--->"]
-PREVIOUS_BUTTON_INFO = [center_x(100, WIDTH - 150), 500, 100, 65,
-                        (190, 67, 67), "<---"]
 
 # Game frame-rate via pygame clock
 FPS = 60
@@ -290,7 +304,7 @@ scroll_value = 5
 assets = [
     (HIGHWAY, (0, 0)),
     (HIGHWAY2, (0, (-1 * HEIGHT))),
-    (USER_CAR_CHOICE, (WIDTH // 2 + LANES[current_lane], USER_Y))
+    (user_car, (WIDTH // 2 + LANES[current_lane], USER_Y))
 ]
 
 # Game Loop:
@@ -301,10 +315,12 @@ while running:
     for event in pygame.event.get():
         # Checks if user changes lane
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_a :
+            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                print("recevidd")
                 if current_lane > 0:
                     current_lane -= 1
             if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                print("Fafds")
                 if current_lane < 3:
                     current_lane += 1
 
@@ -324,7 +340,7 @@ while running:
     # Update the background positions in the assets list
     assets[0] = (HIGHWAY, (0, -scroll_position))
     assets[1] = (HIGHWAY2, (0, -scroll_position - HIGHWAY.get_height()))
-    assets[2] = (USER_CAR_CHOICE, (WIDTH // 2 + LANES[current_lane], USER_Y))
+    assets[2] = (user_car, (WIDTH // 2 + LANES[current_lane], USER_Y))
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)

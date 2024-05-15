@@ -1,8 +1,9 @@
-"""Customise Component - Version 2
+"""Customise Component - Version 3
 A component that branches from the main_menu() component and allows the user to
 customise the colour/type of their car.
-- Linked customise() function to the main menu.
-- Defined and displayed buttons to allow the user to switch the selected car.
+- Trialled putting all the universal buttons into a list, and decided not to.
+Instead, buttons will be placed into the functions that are using them as they
+are only being used once anyways.
 """
 
 # IMPORTS...
@@ -120,9 +121,7 @@ def welcome_screen():
                 if button_clicked == "Customise":
                     customise()
                 if button_clicked == "Quit":
-                    print("test")
                     pygame.quit()
-                    quit()
 
         # Updates the display
         pygame.display.flip()
@@ -133,6 +132,12 @@ def welcome_screen():
 # A function to display instructions
 def instructions():
     back = False
+
+    # Defines and loads the back button
+    BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75,
+                        250, 65, (150, 150, 150), "Back"]
+    BACK_BUTTON = Button(*BACK_BUTTON_INFO)
+
     while not back:  # returns once user has pressed the back button
         quit_check()  # check if the user closes the window
 
@@ -178,7 +183,6 @@ def instructions():
         SCREEN.blit(SCORE_TEXT8, SCORE_RECT8)
 
         # Returns to the main menu if the back button is pressed
-        BACK_BUTTON = Button(*BACK_BUTTON_INFO)
         BACK_BUTTON.draw_button(SCREEN)
         if pygame.mouse.get_pressed()[0] and BACK_BUTTON.is_clicked(
                 pygame.mouse.get_pos()):
@@ -190,26 +194,37 @@ def instructions():
 
 def customise():
     back = False
+
+    # A list containing all the buttons needed for this function
+    buttons = [
+        Button(center_x(250, WIDTH), HEIGHT - 75, 250,
+               65, (150, 150, 150), "Select"),
+        Button(center_x(100, WIDTH + 150), 500, 100,
+               65, (67, 190, 67), "--->"),
+        Button(center_x(100, WIDTH - 150), 500, 100,
+               65, (190, 67, 67), "<---")
+    ]
+
     while not back:  # returns once user has pressed the back button
         quit_check()
 
         # Fills the screen with a dark grey
         SCREEN.fill(DARK_GREY)
 
-        # Draw next and previous buttons
-        NEXT_BUTTON = Button(*NEXT_BUTTON_INFO)
-        PREVIOUS_BUTTON = Button(*PREVIOUS_BUTTON_INFO)
-        NEXT_BUTTON.draw_button(SCREEN)
-        PREVIOUS_BUTTON.draw_button(SCREEN)
+        # Draw the buttons and check for user interaction
+        for button in buttons:
+            button.draw_button(SCREEN)
+            if pygame.mouse.get_pressed()[0] and button.is_clicked(
+                    pygame.mouse.get_pos()):
+                button_clicked = button.text
 
-
-
-        # Returns to the main menu if the back button is pressed
-        SELECT_BUTTON = Button(*SELECT_BUTTON_INFO)
-        SELECT_BUTTON.draw_button(SCREEN)
-        if pygame.mouse.get_pressed()[0] and SELECT_BUTTON.is_clicked(
-                pygame.mouse.get_pos()):
-            return
+                # Checks which button the user clicked
+                if button_clicked == "Select":
+                    return
+                if button_clicked == "--->":
+                    pass
+                if button_clicked == "<---":
+                    pass
 
         # Update display
         pygame.display.flip()
@@ -262,16 +277,6 @@ LANES = [  # list containing the lane x-values
     (85 - (USER_CAR_CHOICE.get_width() // 2))
 ]
 USER_Y = (HEIGHT // 2) + 80
-
-# Universal button information
-BACK_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
-                    (150, 150, 150), "Back"]
-SELECT_BUTTON_INFO = [center_x(250, WIDTH), HEIGHT - 75, 250, 65,
-                      (150, 150, 150), "Select"]
-NEXT_BUTTON_INFO = [center_x(100, WIDTH + 150), 500, 100, 65,
-                    (67, 190, 67), "--->"]
-PREVIOUS_BUTTON_INFO = [center_x(100, WIDTH - 150), 500, 100, 65,
-                        (190, 67, 67), "<---"]
 
 # Game frame-rate via pygame clock
 FPS = 60
