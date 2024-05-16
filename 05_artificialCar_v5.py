@@ -1,7 +1,8 @@
-"""Artificial Car Component - Version 3
+"""Artificial Car Component - Version 5
 A component to generate and start AI controlled (simulated) cars down both
 directions along the lanes for the user car to collide with.
-- Draws AI cars onto the screen
+- Removed the direction variable from the Car class and generate_car()
+function.
 """
 
 # IMPORTS...
@@ -38,20 +39,18 @@ class Button:
 
 
 class Car:
-    def __init__(self, x, y, lane, color, velocity):
-        self.x = x
-        self.y = y
-        self.lane = lane
-        self.color = color
+    def __init__(self, velocity, lane, y_pos, colour):
         self.velocity = velocity
+        self.lane = lane
+        self.y = y_pos
+        self.colour = colour
 
-    def move(self, background_scroll):
-        # Update car's y position based on its velocity and background scroll
-        self.y += self.velocity - background_scroll
+    def move(self, velocity, y_pos):
+        y_pos = y_pos + velocity
+        return y_pos
 
-    def draw(self, screen):
-        # Draw the car on the screen at its current position
-        screen.blit(self.color, (self.x + self.lane, self.y))
+    def draw(self, lane, y_pos, colour):
+        SCREEN.blit(colour, (lane, y_pos))
 
 
 # FUNCTIONS...
@@ -84,20 +83,24 @@ def draw_assets(draw_list):
         SCREEN.blit(asset, pos)
 
 
-def generate_car(background_velocity):
-    create_car = random.randint(1, 600)  # randomly create car
+def generate_car():
+    # Random chance for car to be generated
+    create_car = random.randint(1, 600)
+
+    # Assign created car random values for the game
     if create_car <= 5:
-        # Choose a random lane, color, and set a negative velocity (moving up)
+        direction_chance = random.randint(1, 10)
+        if direction_chance <= 8:
+            velocity = -10 * (random.randint(1, 10))
+            y_pos = HEIGHT + 100
+        else:
+            velocity = scroll_value
+            y_pos = - 100
         lane = random.choice(LANES)
-        random_colour = CARS[car_list[random.randint(0, 5)]]
-        velocity = (background_velocity + random.randint(50, 200))
-        # Create a new Car object and add it to the cars list
-        new_car = Car(WIDTH, HEIGHT, lane, random_colour, velocity)
-        print(new_car)
-        print(lane)
-        print(random_colour)
-        print(velocity)
-        print("--------------------")
+        colour = CARS[car_list[random.randint(0, 5)]]
+
+        # Create car object and append to list
+        new_car = Car(velocity, lane, y_pos, colour)
         cars.append(new_car)
 
 
@@ -291,12 +294,12 @@ HIGHWAY = scale(pygame.image.load("highway.jpg"), 0.9)
 HIGHWAY2 = HIGHWAY.copy()  # copies highway image for background motion
 ICON = pygame.image.load("icon.png")
 CARS = {  # a dictionary storing all the cars
-    "blue": (scale(pygame.image.load("blue-car.png"), 0.13)),
-    "green": (scale(pygame.image.load("green-car.png"), 0.13)),
-    "orange": (scale(pygame.image.load("orange-car.png"), 0.13)),
-    "purple": (scale(pygame.image.load("purple-car.png"), 0.13)),
-    "red": (scale(pygame.image.load("red-car.png"), 0.13)),
-    "teal": (scale(pygame.image.load("teal-car.png"), 0.13)),
+    "blue": scale(pygame.image.load("blue-car.png"), 0.13),
+    "green": scale(pygame.image.load("green-car.png"), 0.13),
+    "orange": scale(pygame.image.load("orange-car.png"), 0.13),
+    "purple": scale(pygame.image.load("purple-car.png"), 0.13),
+    "red": scale(pygame.image.load("red-car.png"), 0.13),
+    "teal": scale(pygame.image.load("teal-car.png"), 0.13),
 }
 
 # Load the keys able to be pressed
@@ -355,7 +358,7 @@ assets = [
     (user_car, (WIDTH // 2 + LANES[current_lane], USER_Y))
 ]
 
-# Initialise a list to store all the AI cars
+# A list containing all the cars
 cars = []
 
 # Game Loop:
@@ -393,17 +396,14 @@ while running:
     assets[1] = (HIGHWAY2, (0, -scroll_position - HIGHWAY.get_height()))
     assets[2] = (user_car, (WIDTH // 2 + LANES[current_lane], USER_Y))
 
-    # Randomly generates a car
-    generate_car(scroll_value)
-
-    # Draw AI cars
+    # Chance to generate AI car
+    generate_car()
     for car in cars:
-        car.move(scroll_value)
-        # Check if the car has gone off the screen (top) and remove it if so
-        if car.y < -car.color.get_height():
+        car.move(car.velocity, car.y_pos)
+        if car.y_pos < HEIGHT:
             cars.remove(car)
         else:
-            car.draw(SCREEN)
+            car.draw(car.lane, car.y_pos, car.colour)
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)
