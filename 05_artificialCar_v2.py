@@ -1,8 +1,8 @@
-"""Customise Component - Version 6
-A component that branches from the main_menu() component and allows the user to
-customise the colour/type of their car.
-- Formatted the display of the user's selected car.
-- Adjusted the intervals between user clicks
+"""Artificial Car Component - Version 2
+A component to generate and start AI controlled (simulated) cars down both
+directions along the lanes for the user car to collide with.
+- Created a list to store all of the AI cars.
+- Created generate_car() function
 """
 
 # IMPORTS...
@@ -38,6 +38,23 @@ class Button:
         return self.rect.collidepoint(pos)
 
 
+class Car:
+    def __init__(self, x, y, lane, color, velocity):
+        self.x = x
+        self.y = y
+        self.lane = lane
+        self.color = color
+        self.velocity = velocity
+
+    def move(self, background_scroll):
+        # Update car's y position based on its velocity and background scroll
+        self.y += self.velocity - background_scroll
+
+    def draw(self, screen):
+        # Draw the car on the screen at its current position
+        screen.blit(self.color, (self.x + self.lane, self.y))
+
+
 # FUNCTIONS...
 
 
@@ -66,6 +83,18 @@ def center_x(button_width, screen_width):
 def draw_assets(draw_list):
     for asset, pos in draw_list:
         SCREEN.blit(asset, pos)
+
+
+def generate_car(background_velocity):
+    create_car = random.randint(1, 600)  # randomly create car
+    if create_car <= 5:
+        # Choose a random lane, color, and set a negative velocity (moving up)
+        lane = random.choice(LANES)
+        random_colour = CARS[car_list[random.randint(0, 5)]]
+        velocity = - (background_velocity + random.randint(1, 5))
+        # Create a new Car object and add it to the cars list
+        new_car = Car(WIDTH, HEIGHT, lane, random_colour, velocity)
+        cars.append(new_car)
 
 
 # A function to display the welcome screen
@@ -150,7 +179,7 @@ def instructions():
         CONTROLS_RECT2 = CONTROLS_TEXT2.get_rect(center=(WIDTH // 2, 40))
         SCREEN.blit(CONTROLS_TEXT1, CONTROLS_RECT1)
         SCREEN.blit(CONTROLS_TEXT2, CONTROLS_RECT2)
-        CONTROLS_TEXT3 = DEFAULT_FONT.render("Press 'W' or >RIGHT ARROW< to",True, WHITE)
+        CONTROLS_TEXT3 = DEFAULT_FONT.render("Press 'D' or >RIGHT ARROW< to",True, WHITE)
         CONTROLS_TEXT4 = DEFAULT_FONT.render("change lanes to the right.", True, WHITE)
         CONTROLS_RECT3 = CONTROLS_TEXT3.get_rect(center=(WIDTH // 2, 80))
         CONTROLS_RECT4 = CONTROLS_TEXT4.get_rect(center=(WIDTH // 2, 100))
@@ -322,17 +351,36 @@ assets = [
     (user_car, (WIDTH // 2 + LANES[current_lane], USER_Y))
 ]
 
+# Initialise a list to store all the AI cars
+cars = []
+
 # Game Loop:
 running = True
+prev_keys = pygame.key.get_pressed()  # Store previous key states
 while running:
     # Handle events
     quit_check()
-    keys_pressed = pygame.key.get_pressed()
-    if (keys_pressed[pygame.K_a] and current_lane > 0 or
-            keys_pressed[pygame.K_LEFT] and current_lane > 0):
+    keys = pygame.key.get_pressed()  # Get current key states
+
+    # Randomly generates a car
+    generate_car(scroll_value)
+
+    for car in cars:
+        car.move(scroll_value)
+        # Check if the car has gone off the screen (top) and remove it if so
+        if car.y < -car.color.get_height():
+            cars.remove(car)
+        else:
+            car.draw(SCREEN)
+
+    # Check for lane change only if key is pressed down this frame
+    if (keys[pygame.K_a] and not prev_keys[pygame.K_a] and current_lane > 0 or
+            keys[pygame.K_LEFT] and not prev_keys[pygame.K_LEFT] and
+            current_lane > 0):
         current_lane -= 1
-    if (keys_pressed[pygame.K_d] and current_lane < 3 or
-            keys_pressed[pygame.K_RIGHT] and current_lane < 3):
+    if (keys[pygame.K_d] and not prev_keys[pygame.K_d] and current_lane < 3 or
+            keys[pygame.K_RIGHT] and not prev_keys[pygame.K_RIGHT] and
+            current_lane < 3):
         current_lane += 1
 
     # Slowly speed up the background's motion as time goes on
@@ -355,6 +403,10 @@ while running:
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)
+    draw_assets(cars)
+
+    # Update previous key states for next loop
+    prev_keys = keys
 
     # Updates the screen
     pygame.display.flip()

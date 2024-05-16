@@ -1,8 +1,7 @@
-"""Customise Component - Version 6
-A component that branches from the main_menu() component and allows the user to
-customise the colour/type of their car.
-- Formatted the display of the user's selected car.
-- Adjusted the intervals between user clicks
+"""Artificial Car Component - Version 1
+A component to generate and start AI controlled (simulated) cars down both
+directions along the lanes for the user car to collide with.
+- Created the car class
 """
 
 # IMPORTS...
@@ -36,6 +35,23 @@ class Button:
     # If a button is clicked, it will return the position
     def is_clicked(self, pos):
         return self.rect.collidepoint(pos)
+
+
+class Car:
+    def __init__(self, x, y, lane, color, velocity):
+        self.x = x
+        self.y = y
+        self.lane = lane
+        self.color = color
+        self.velocity = velocity
+
+    def move(self, background_scroll):
+        # Update car's y position based on its velocity and background scroll
+        self.y += self.velocity - background_scroll
+
+    def draw(self, screen):
+        # Draw the car on the screen at its current position
+        screen.blit(self.color, (self.x + self.lane, self.y))
 
 
 # FUNCTIONS...
@@ -150,7 +166,7 @@ def instructions():
         CONTROLS_RECT2 = CONTROLS_TEXT2.get_rect(center=(WIDTH // 2, 40))
         SCREEN.blit(CONTROLS_TEXT1, CONTROLS_RECT1)
         SCREEN.blit(CONTROLS_TEXT2, CONTROLS_RECT2)
-        CONTROLS_TEXT3 = DEFAULT_FONT.render("Press 'W' or >RIGHT ARROW< to",True, WHITE)
+        CONTROLS_TEXT3 = DEFAULT_FONT.render("Press 'D' or >RIGHT ARROW< to",True, WHITE)
         CONTROLS_TEXT4 = DEFAULT_FONT.render("change lanes to the right.", True, WHITE)
         CONTROLS_RECT3 = CONTROLS_TEXT3.get_rect(center=(WIDTH // 2, 80))
         CONTROLS_RECT4 = CONTROLS_TEXT4.get_rect(center=(WIDTH // 2, 100))
@@ -324,15 +340,20 @@ assets = [
 
 # Game Loop:
 running = True
+prev_keys = pygame.key.get_pressed()  # Store previous key states
 while running:
     # Handle events
     quit_check()
-    keys_pressed = pygame.key.get_pressed()
-    if (keys_pressed[pygame.K_a] and current_lane > 0 or
-            keys_pressed[pygame.K_LEFT] and current_lane > 0):
+    keys = pygame.key.get_pressed()  # Get current key states
+
+    # Check for lane change only if key is pressed down this frame
+    if (keys[pygame.K_a] and not prev_keys[pygame.K_a] and current_lane > 0 or
+            keys[pygame.K_LEFT] and not prev_keys[pygame.K_LEFT] and
+            current_lane > 0):
         current_lane -= 1
-    if (keys_pressed[pygame.K_d] and current_lane < 3 or
-            keys_pressed[pygame.K_RIGHT] and current_lane < 3):
+    if (keys[pygame.K_d] and not prev_keys[pygame.K_d] and current_lane < 3 or
+            keys[pygame.K_RIGHT] and not prev_keys[pygame.K_RIGHT] and
+            current_lane < 3):
         current_lane += 1
 
     # Slowly speed up the background's motion as time goes on
@@ -355,6 +376,9 @@ while running:
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)
+
+    # Update previous key states for next loop
+    prev_keys = keys
 
     # Updates the screen
     pygame.display.flip()

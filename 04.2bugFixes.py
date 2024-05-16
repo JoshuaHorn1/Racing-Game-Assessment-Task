@@ -1,8 +1,10 @@
-"""Customise Component - Version 6
-A component that branches from the main_menu() component and allows the user to
-customise the colour/type of their car.
-- Formatted the display of the user's selected car.
-- Adjusted the intervals between user clicks
+"""Bug Fixes
+- Fixed bug where the user inputs (a/d and LEFT/RIGHT) wouldn't change lanes,
+or would skip multiple lanes. (This was done by trialling with the previous
+methods of getting a user input - this one is more efficient, more effective,
+and has the advantage of not doing anything until the user has let go of the
+keys).
+- Changed some incorrect text in the instructions() function.
 """
 
 # IMPORTS...
@@ -150,7 +152,7 @@ def instructions():
         CONTROLS_RECT2 = CONTROLS_TEXT2.get_rect(center=(WIDTH // 2, 40))
         SCREEN.blit(CONTROLS_TEXT1, CONTROLS_RECT1)
         SCREEN.blit(CONTROLS_TEXT2, CONTROLS_RECT2)
-        CONTROLS_TEXT3 = DEFAULT_FONT.render("Press 'W' or >RIGHT ARROW< to",True, WHITE)
+        CONTROLS_TEXT3 = DEFAULT_FONT.render("Press 'D' or >RIGHT ARROW< to",True, WHITE)
         CONTROLS_TEXT4 = DEFAULT_FONT.render("change lanes to the right.", True, WHITE)
         CONTROLS_RECT3 = CONTROLS_TEXT3.get_rect(center=(WIDTH // 2, 80))
         CONTROLS_RECT4 = CONTROLS_TEXT4.get_rect(center=(WIDTH // 2, 100))
@@ -324,15 +326,20 @@ assets = [
 
 # Game Loop:
 running = True
+prev_keys = pygame.key.get_pressed()  # Store previous key states
 while running:
     # Handle events
     quit_check()
-    keys_pressed = pygame.key.get_pressed()
-    if (keys_pressed[pygame.K_a] and current_lane > 0 or
-            keys_pressed[pygame.K_LEFT] and current_lane > 0):
+    keys = pygame.key.get_pressed()  # Get current key states
+
+    # Check for lane change only if key is pressed down this frame
+    if (keys[pygame.K_a] and not prev_keys[pygame.K_a] and current_lane > 0 or
+            keys[pygame.K_LEFT] and not prev_keys[pygame.K_LEFT] and
+            current_lane > 0):
         current_lane -= 1
-    if (keys_pressed[pygame.K_d] and current_lane < 3 or
-            keys_pressed[pygame.K_RIGHT] and current_lane < 3):
+    if (keys[pygame.K_d] and not prev_keys[pygame.K_d] and current_lane < 3 or
+            keys[pygame.K_RIGHT] and not prev_keys[pygame.K_RIGHT] and
+            current_lane < 3):
         current_lane += 1
 
     # Slowly speed up the background's motion as time goes on
@@ -355,6 +362,9 @@ while running:
 
     # Calls the draw_assets() function to draw all assets on the screen
     draw_assets(assets)
+
+    # Update previous key states for next loop
+    prev_keys = keys
 
     # Updates the screen
     pygame.display.flip()
