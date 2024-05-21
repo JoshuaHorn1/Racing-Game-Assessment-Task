@@ -1,9 +1,10 @@
-"""Artificial Car Component - Version 5
+"""Artificial Car Component - Version 6
 A component to generate and start AI controlled (simulated) cars down both
 directions along the lanes for the user car to collide with.
-- Removed the direction variable from the Car class and generate_car()
-function.
-- Fixed errors where cars weren't being drawn.
+- Fixed error where cars were being drawn before the background, resulting in
+them being overwritten.
+- Fixed AI car speed.
+- Fixed ratio of cars from the front and cars from behind
 """
 
 # IMPORTS...
@@ -86,18 +87,17 @@ def draw_assets(draw_list):
 
 def generate_car():
     # Random chance for car to be generated
-    create_car = random.randint(1, 500)
+    create_car = random.randint(1, 350)
 
     # Assign created car random values for the game
     if create_car <= 5:
         direction_chance = random.randint(1, 10)
-        if direction_chance <= 8:
-            velocity = -100
-            # velocity = -10 * (random.randint(1, 4))
-            y_pos = HEIGHT + 100
+        if direction_chance <= 3:
+            velocity = -0.5 * (random.randint(1, 3))
+            y_pos = HEIGHT + 20
         else:
             velocity = scroll_value
-            y_pos = -100
+            y_pos = -20
 
         lane = random.choice(LANES)
         car_type = CARS[car_list[random.randint(0, 5)]]
@@ -399,7 +399,10 @@ while running:
     assets[1] = (HIGHWAY2, (0, -scroll_position - HIGHWAY.get_height()))
     assets[2] = (user_car, (WIDTH // 2 + LANES[current_lane], USER_Y))
 
-    # Chance to generate AI car
+    # Calls the draw_assets() function to draw all assets on the screen
+    draw_assets(assets)
+
+    # Chance to generate AI car, and draws all AI cars
     generate_car()
     for car in cars:
         print(car.y_pos)
@@ -414,9 +417,6 @@ while running:
             cars.remove(car)
         else:
             Car.draw(car, car.lane, car.y_pos, car.car_type)
-
-    # Calls the draw_assets() function to draw all assets on the screen
-    draw_assets(assets)
 
     # Update previous key states for next loop
     prev_keys = keys

@@ -1,9 +1,7 @@
-"""Artificial Car Component - Version 5
+"""Artificial Car Component - Version 8
 A component to generate and start AI controlled (simulated) cars down both
 directions along the lanes for the user car to collide with.
-- Removed the direction variable from the Car class and generate_car()
-function.
-- Fixed errors where cars weren't being drawn.
+- Flipped the car image for cars going from the top of the screen down.
 """
 
 # IMPORTS...
@@ -86,25 +84,32 @@ def draw_assets(draw_list):
 
 def generate_car():
     # Random chance for car to be generated
-    create_car = random.randint(1, 500)
+    # Increases the counter for if a car has spawned recently, and if one
+    # hasn't, it will attempt to spawn one.
+    global car_spawned_recently
+    car_spawned_recently += 1
 
-    # Assign created car random values for the game
-    if create_car <= 5:
-        direction_chance = random.randint(1, 10)
-        if direction_chance <= 8:
-            velocity = -100
-            # velocity = -10 * (random.randint(1, 4))
-            y_pos = HEIGHT + 100
-        else:
-            velocity = scroll_value
-            y_pos = -100
+    if car_spawned_recently >= 100:
+        create_car = random.randint(1, 300)
+        if create_car <= 5:  # assign created car random values for the game
+            direction_chance = random.randint(1, 10)
+            if direction_chance <= 4:
+                velocity = -2 * (random.randint(1, 2))
+                y_pos = HEIGHT + 100
+                car_type = CARS[car_list[random.randint(0, 5)]]
+            else:
+                velocity = scroll_value
+                y_pos = -100
+                car_type = pygame.transform.rotate(CARS[car_list[
+                    random.randint(0, 5)]], 180)
 
-        lane = random.choice(LANES)
-        car_type = CARS[car_list[random.randint(0, 5)]]
+            lane = random.choice(LANES)
 
-        # Create car object and append to list
-        new_car = Car(velocity, lane, y_pos, car_type)
-        cars.append(new_car)
+            # Create car object and append to list
+            new_car = Car(velocity, lane, y_pos, car_type)
+            cars.append(new_car)
+
+            car_spawned_recently = 0  # reset counter
 
 
 # A function to display the welcome screen
@@ -333,13 +338,13 @@ car_selection = random.randint(0, 5)  # Pick a random car
 user_car = CARS[car_list[car_selection]]
 
 # X/Y Values for the lanes and user car placement
-LANES = [  # list containing the lane x-values
-    (-85 - (user_car.get_width() // 2)),
-    (-30 - (user_car.get_width() // 2)),
-    (30 - (user_car.get_width() // 2)),
-    (85 - (user_car.get_width() // 2))
+LANES = [  # list containing the lane x-values for the User and AI cars
+    (WIDTH // 2 + (-85 - (user_car.get_width() // 2))),
+    (WIDTH // 2 + (-30 - (user_car.get_width() // 2))),
+    (WIDTH // 2 + (30 - (user_car.get_width() // 2))),
+     (WIDTH // 2 + (85 - (user_car.get_width() // 2)))
 ]
-USER_Y = (HEIGHT // 2) + 80
+USER_Y = (HEIGHT // 2) + 50
 
 # Game frame-rate via pygame clock
 FPS = 60
@@ -358,11 +363,14 @@ scroll_value = 5
 assets = [
     (HIGHWAY, (0, 0)),
     (HIGHWAY2, (0, (-1 * HEIGHT))),
-    (user_car, (WIDTH // 2 + LANES[current_lane], USER_Y))
+    (user_car, (LANES[current_lane], USER_Y))
 ]
 
 # A list containing all the cars
 cars = []
+
+# A variable containing whether or not a car spawned recently.
+car_spawned_recently = 0
 
 # Game Loop:
 running = True
@@ -397,16 +405,17 @@ while running:
     # Update the background positions in the assets list
     assets[0] = (HIGHWAY, (0, -scroll_position))
     assets[1] = (HIGHWAY2, (0, -scroll_position - HIGHWAY.get_height()))
-    assets[2] = (user_car, (WIDTH // 2 + LANES[current_lane], USER_Y))
+    assets[2] = (user_car, (LANES[current_lane], USER_Y))
 
-    # Chance to generate AI car
+    # Calls the draw_assets() function to draw all assets on the screen
+    draw_assets(assets)
+
+    # Chance to generate AI car, and draws all AI cars
+    car_spawned_recently += 1
     generate_car()
     for car in cars:
-        print(car.y_pos)
         new_y = Car.move(car, car.velocity, car.y_pos)
         car.y_pos = new_y
-        print(new_y)
-        print()
 
         if car.y_pos > HEIGHT * 2:
             cars.remove(car)
@@ -414,9 +423,6 @@ while running:
             cars.remove(car)
         else:
             Car.draw(car, car.lane, car.y_pos, car.car_type)
-
-    # Calls the draw_assets() function to draw all assets on the screen
-    draw_assets(assets)
 
     # Update previous key states for next loop
     prev_keys = keys
