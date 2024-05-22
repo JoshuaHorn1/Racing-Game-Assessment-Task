@@ -1,7 +1,8 @@
-"""Collision Detection Component - Version 1
-A component to detect collisions between the user car and AI cars, and between
-two or more AI cars.
-- Created a method to check for collisions between the AI car and user car.
+"""Scoring Component - Version 2
+A component to track the score of the user based on how many AI cars they have
+overtaken (passed) before the user crashes or quits the game.
+- Added a function to constantly display the user's score - created a new
+font specifically for the score text.
 """
 
 # IMPORTS...
@@ -51,12 +52,6 @@ class Car:
     def draw(self, lane, y_pos, car_type):
         SCREEN.blit(car_type, (lane, y_pos))
 
-    def collide(self, mask, x=0, y=0):
-        car_mask = pygame.mask.from_surface(self.car_type)
-        offset = (int(self.lane - x), int(self.y_pos - y))
-        poi = mask.overlap(car_mask, offset)
-        return poi
-
 
 # FUNCTIONS...
 
@@ -88,6 +83,7 @@ def draw_assets(draw_list):
         SCREEN.blit(asset, pos)
 
 
+# A function to randomly generate an AI car
 def generate_car():
     # Random chance for car to be generated
     # Increases the counter for if a car has spawned recently, and if one
@@ -241,6 +237,7 @@ def instructions():
         pygame.display.flip()
 
 
+# A function to allow the user to select their car type
 def customise(car_num):
     global user_car
     back = False
@@ -302,6 +299,56 @@ def customise(car_num):
         pygame.display.flip()
 
 
+# A function to check for collisions between the user car and AI cars
+def user_ai_collision(user, user_lane, ai_cars):
+    user_mask = pygame.mask.from_surface(user)  # Create user car mask
+
+    # Checks if the user mask collides with any AI cars
+    for ai in ai_cars:
+        car_mask = pygame.mask.from_surface(ai.car_type)  # Create AI car mask
+        offset = (ai.lane - user_lane, ai.y_pos - USER_Y)
+
+        # Check for overlapping masks - if collision detected, return True
+        if user_mask.overlap(car_mask, offset):
+            return True
+
+    # If no collisions detected, return false
+    return False
+
+
+# A function to check for collisions between multiple AI cars
+def ai_ai_collision(ai_cars, background_velocity):
+    for i, car1 in enumerate(ai_cars):
+        car1_mask = pygame.mask.from_surface(car1.car_type)
+        for j, car2 in enumerate(ai_cars):
+            if i != j:
+                car2_mask = pygame.mask.from_surface(car2.car_type)
+                offset = (car2.lane - car1.lane, car2.y_pos - car1.y_pos)
+
+                # Check for overlapping masks
+                if car1_mask.overlap(car2_mask, offset):
+                    # Set velocities of both cars to scroll_value
+                    car1.velocity = background_velocity
+                    car2.velocity = background_velocity
+
+
+# A function to check if the user passes an AI car
+def passed_car(ai_cars, user_y):
+    global score
+    for ai in ai_cars:
+        if ai.velocity > 0 and ai.y_pos > user_y >= ai.y_pos - ai.velocity:
+            score += 1
+        elif ai.velocity < 0 and ai.y_pos < user_y <= ai.y_pos - ai.velocity:
+            score += 1
+
+
+# A function to display the user's score
+def display_score():
+    score_text = SCORE_FONT.render(f" Score: {score} ",
+                                   True, BLACK, LIGHT_GREY)
+    SCREEN.blit(score_text, (5, 5))
+
+
 # MAIN PROGRAM...
 # Load Game Assets:
 HIGHWAY = scale(pygame.image.load("highway.jpg"), 0.9)
@@ -324,10 +371,12 @@ DARK_GREY = (60, 60, 60)
 LIGHT_GREY = (150, 150, 150)
 VIBRANT_PURPLE = (188, 0, 255)
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 # Set Fonts:
 DEFAULT_FONT = pygame.font.SysFont("couriernew", 20)
 TITLE_FONT = pygame.font.SysFont("goudystout", 40)
+SCORE_FONT = pygame.font.SysFont("bahnschrift", 20)
 
 # Calculate and store the height and width needed for the screen
 WIDTH = HIGHWAY.get_width()
@@ -381,6 +430,9 @@ cars = []
 # A variable containing whether or not a car spawned recently.
 car_spawned_recently = 0
 
+# A variable storing the user's score
+score = 0
+
 # Game Loop:
 running = True
 prev_keys = pygame.key.get_pressed()  # Store previous key states
@@ -426,16 +478,26 @@ while running:
         new_y = Car.move(car, car.velocity, car.y_pos)
         car.y_pos = new_y
 
-        if car.y_pos > HEIGHT * 2:
+        if car.y_pos > HEIGHT + 100:
             cars.remove(car)
-        elif car.y_pos < HEIGHT * -2:
+        elif car.y_pos < - 100:
             cars.remove(car)
         else:
             Car.draw(car, car.lane, car.y_pos, car.car_type)
 
-        collide_with_user = Car.collide(car, user_car)
-        if collide_with_user:
-            print("death")
+        # Check for collision between two AI cars
+        ai_ai_collision(cars, scroll_value)
+
+        # Check for collision between user and AI
+        if user_ai_collision(user_car, LANES[current_lane], cars):
+            # Handle collision if detected
+            running = False
+
+    # Checks if the user has passed any cars
+    passed_car(cars, USER_Y)
+
+    # Displays the user's score
+    display_score()
 
     # Update previous key states for next loop
     prev_keys = keys

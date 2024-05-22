@@ -1,7 +1,9 @@
-"""Collision Detection Component - Version 1
+"""Collision Detection Component - Version 2
 A component to detect collisions between the user car and AI cars, and between
 two or more AI cars.
-- Created a method to check for collisions between the AI car and user car.
+- Trialled using a function to create a mask of all the cars in the car list
+and then compare overlaps that way.
+- Made user-ai collision work correctly.
 """
 
 # IMPORTS...
@@ -51,11 +53,11 @@ class Car:
     def draw(self, lane, y_pos, car_type):
         SCREEN.blit(car_type, (lane, y_pos))
 
-    def collide(self, mask, x=0, y=0):
-        car_mask = pygame.mask.from_surface(self.car_type)
-        offset = (int(self.lane - x), int(self.y_pos - y))
-        poi = mask.overlap(car_mask, offset)
-        return poi
+    # def collide(self, mask, x=0, y=0):
+    #     car_mask = pygame.mask.from_surface(self.car_type)
+    #     offset = (int(self.lane - x), int(self.y_pos - y))
+    #     poi = mask.overlap(car_mask, offset)
+    #     return poi
 
 
 # FUNCTIONS...
@@ -302,6 +304,21 @@ def customise(car_num):
         pygame.display.flip()
 
 
+# A function to check for collisions between the user car and AI cars
+def user_ai_collision(user, user_lane, ai_cars):
+    user_mask = pygame.mask.from_surface(user)  # Create user car mask
+
+    for ai in ai_cars:
+        car_mask = pygame.mask.from_surface(ai.car_type)  # Create AI car mask
+        offset = (ai.lane - user_lane, ai.y_pos - USER_Y)
+
+        # Check for overlapping masks
+        if user_mask.overlap(car_mask, offset):
+            return True
+
+    return False
+
+
 # MAIN PROGRAM...
 # Load Game Assets:
 HIGHWAY = scale(pygame.image.load("highway.jpg"), 0.9)
@@ -433,9 +450,10 @@ while running:
         else:
             Car.draw(car, car.lane, car.y_pos, car.car_type)
 
-        collide_with_user = Car.collide(car, user_car)
-        if collide_with_user:
-            print("death")
+        # Check for collision
+        if user_ai_collision(user_car, LANES[current_lane], cars):
+            # Handle collision if detected
+            running = False
 
     # Update previous key states for next loop
     prev_keys = keys
