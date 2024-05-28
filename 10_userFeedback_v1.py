@@ -1,6 +1,7 @@
 """User Feedback Component - Version 1
 A component where I get end-user feedback and then trial their suggestions to
 incorporate into my code.
+- Changed the
 """
 
 # IMPORTS...
