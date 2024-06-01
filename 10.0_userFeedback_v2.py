@@ -1,7 +1,8 @@
-"""User Feedback Component - Version 1
+"""User Feedback Component - Version 2
 A component where I get end-user feedback and then trial their suggestions to
 incorporate into my code.
-- Changed the
+- Fixed the glitch where the arrow buttons in the customise() function weren't
+responsive or would skip over car colour options.
 """
 
 # IMPORTS...
@@ -43,6 +44,8 @@ class Car:
         self.lane = lane
         self.y_pos = y_pos
         self.car_type = car_type
+        # New attribute to track if the car has been scored
+        self.scored = False
 
     def move(self, velocity, y_pos):
         y_pos = y_pos + velocity
@@ -263,19 +266,12 @@ def customise(car_num):
 
     # Keep track of if a button has already been clicked this loop
     button_clicked = False
-    click_counter = 0
 
     while not back:  # returns once user has pressed the back button
         quit_check()
 
         # Fills the screen with a dark grey
         SCREEN.fill(DARK_GREY)
-
-        # Creates a delay between user inputs to prevent errors
-        click_counter += 1
-        if click_counter >= 300:
-            button_clicked = False
-            click_counter = 0
 
         # Draw the buttons and check for user interaction
         for button in buttons:
@@ -294,6 +290,9 @@ def customise(car_num):
                 if button_text == "<---":
                     if car_num > 0:
                         car_num -= 1
+
+        if not pygame.mouse.get_pressed()[0]:
+            button_clicked = False
 
         # Assign the user car
         user_car = CARS[car_list[car_num]]
@@ -345,10 +344,15 @@ def ai_ai_collision(ai_cars, background_velocity):
 def passed_car(ai_cars, user_y):
     global score
     for ai in ai_cars:
-        if ai.velocity > 0 and ai.y_pos > user_y >= ai.y_pos - ai.velocity:
-            score += 1
-        elif ai.velocity < 0 and ai.y_pos < user_y <= ai.y_pos - ai.velocity:
-            score += 1
+        if not ai.scored:  # Only score if the car hasn't been scored yet
+            if (ai.velocity > 0 and ai.y_pos > user_y >=
+                    ai.y_pos - ai.velocity):
+                score += 1
+                ai.scored = True  # Mark the car as scored
+            elif (ai.velocity < 0 and ai.y_pos < user_y <=
+                  ai.y_pos - ai.velocity):
+                score += 1
+                ai.scored = True  # Mark the car as scored
 
 
 # A function to display the user's score
@@ -559,9 +563,7 @@ while running:
         new_y = Car.move(car, car.velocity, car.y_pos)
         car.y_pos = new_y
 
-        if car.y_pos > HEIGHT + 100:
-            cars.remove(car)
-        elif car.y_pos < - 100:
+        if car.y_pos > HEIGHT + 100 or car.y_pos < -100:
             cars.remove(car)
         else:
             Car.draw(car, car.lane, car.y_pos, car.car_type)
