@@ -1,7 +1,8 @@
-"""User Feedback Component - Version 6
+"""User Feedback Component - Version 7
 A component where I get end-user feedback and then trial their suggestions to
 incorporate into my code.
-- Gradually increases the chance for AI cars to spawn overtime.
+- Places an explosion PNG between two crashed AI cars.
+- Places an explosion PNG on the user's car when it is crashed.
 """
 
 # IMPORTS...
@@ -97,12 +98,12 @@ def generate_car(spawn):
         create_car = random.randint(1, spawn)
         if create_car <= 5:  # assign created car random values for the game
             direction_chance = random.randint(1, 10)
-            if direction_chance <= 3:
+            if direction_chance <= 4:
                 velocity_choice = (random.randint(1, 2))
                 if velocity_choice == 1:
-                    velocity = -4
+                    velocity = -3.5
                 else:
-                    velocity = -5
+                    velocity = -4.5
                 y_pos = HEIGHT + 100
                 car_type = CARS[car_list[random.randint(0, 5)]]
             else:
@@ -346,6 +347,10 @@ def user_ai_collision(user, user_lane, ai_cars):
 
         # Check for overlapping masks - if collision detected, return True
         if user_mask.overlap(car_mask, offset):
+            explosion_rect = EXPLOSION.get_rect(center=(user_lane + 20,
+                                                        USER_Y + 40))
+            SCREEN.blit(EXPLOSION, explosion_rect)
+
             return True
 
     # If no collisions detected, return false
@@ -366,6 +371,11 @@ def ai_ai_collision(ai_cars, background_velocity):
                     # Set velocities of both cars to scroll_value
                     car1.velocity = background_velocity
                     car2.velocity = background_velocity
+
+                    average_y = ((car1.y_pos + car2.y_pos) // 2) + 30
+                    explosion_rect = EXPLOSION.get_rect(center=(car1.lane + 20,
+                                                                average_y))
+                    SCREEN.blit(EXPLOSION, explosion_rect)
 
 
 # A function to check if the user passes an AI car
@@ -483,6 +493,7 @@ def game_over_screen(user_score):
 HIGHWAY = scale(pygame.image.load("highway.jpg"), 0.9)
 HIGHWAY2 = HIGHWAY.copy()  # copies highway image for background motion
 ICON = pygame.image.load("icon.png")
+EXPLOSION = scale(pygame.image.load("explosion.png"), 0.15)
 CARS = {  # a dictionary storing all the cars
     "blue": scale(pygame.image.load("blue-car.png"), 0.13),
     "green": scale(pygame.image.load("green-car.png"), 0.13),
@@ -623,7 +634,7 @@ while running:
         new_y = Car.move(car, car.velocity, car.y_pos)
         car.y_pos = new_y
 
-        if car.y_pos > HEIGHT + 100 or car.y_pos < -100:
+        if car.y_pos > HEIGHT + 150 or car.y_pos < -150:
             cars.remove(car)
         else:
             Car.draw(car, car.lane, car.y_pos, car.car_type)
